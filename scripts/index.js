@@ -25,6 +25,57 @@ const initialCards = [
   },
 ];
 
+// --- Elementos del perfil ---
+const profileTitle = document.querySelector('.profile__title');
+const profileDescription = document.querySelector('.profile__description');
+const editButton = document.querySelector('.profile__edit-button');
+
+// --- Elementos del modal "Editar perfil" ---
+const editPopup = document.querySelector('#edit-popup');
+const closeButton = editPopup.querySelector('.popup__close');
+const editProfileForm = editPopup.querySelector('#edit-profile-form');
+const nameInput = editPopup.querySelector('.popup__input_type_name');
+const descriptionInput = editPopup.querySelector('.popup__input_type_description');
+
+// --- Funciones reutilizables del modal ---
+function openModal(modal) {
+  modal.classList.add('popup_is-opened');
+}
+
+function closeModal(modal) {
+  modal.classList.remove('popup_is-opened');
+}
+
+// --- Rellena el formulario con los datos actuales del perfil ---
+function fillProfileForm() {
+  nameInput.value = profileTitle.textContent;
+  descriptionInput.value = profileDescription.textContent;
+}
+
+// --- Rellena el formulario y abre el modal "Editar perfil" ---
+function handleOpenEditModal() {
+  fillProfileForm();
+  openModal(editPopup);
+}
+
+// --- Maneja el envío del formulario "Editar perfil" ---
+function handleProfileFormSubmit(evt) {
+  evt.preventDefault();
+
+  profileTitle.textContent = nameInput.value;
+  profileDescription.textContent = descriptionInput.value;
+
+  closeModal(editPopup);
+}
+
+// --- Event listeners ---
+editButton.addEventListener('click', handleOpenEditModal);
+closeButton.addEventListener('click', function () {
+  closeModal(editPopup);
+});
+editProfileForm.addEventListener('submit', handleProfileFormSubmit);
+
+// --- Muestra en consola el nombre de cada tarjeta inicial ---
 initialCards.forEach(function (card) {
   console.log(card.name);
 });
