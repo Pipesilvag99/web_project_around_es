@@ -1,3 +1,5 @@
+import { setEventListeners, resetValidation } from './validate.js';
+
 const initialCards = [
   {
     name: "Valle de Yosemite",
@@ -55,13 +57,36 @@ const imagePopupCaption = imagePopup.querySelector('.popup__caption');
 const cardTemplate = document.querySelector('#card-template').content;
 const cardsList = document.querySelector('.cards__list');
 
-// --- Funciones reutilizables del modal ---
-function openModal(modal) {
-  modal.classList.add('popup_is-opened');
+// --- Lista de todos los popups (para clic afuera) ---
+const allPopups = Array.from(document.querySelectorAll('.popup'));
+
+// --- Cierra el popup abierto al pulsar Esc ---
+function handleEscClose(evt) {
+  if (evt.key === 'Escape') {
+    const openedPopup = document.querySelector('.popup_is-opened');
+    if (openedPopup) {
+      closeModal(openedPopup);
+    }
+  }
 }
 
+// --- Abre un popup y activa el cierre con Esc ---
+function openModal(modal) {
+  modal.classList.add('popup_is-opened');
+  document.addEventListener('keydown', handleEscClose);
+}
+
+// --- Cierra un popup y desactiva el cierre con Esc ---
 function closeModal(modal) {
   modal.classList.remove('popup_is-opened');
+  document.removeEventListener('keydown', handleEscClose);
+}
+
+// --- Cierra el popup si el clic fue en la superposición, no en el contenido ---
+function handleOverlayClick(evt) {
+  if (evt.target.classList.contains('popup')) {
+    closeModal(evt.target);
+  }
 }
 
 // --- Rellena el formulario con los datos actuales del perfil ---
@@ -70,9 +95,10 @@ function fillProfileForm() {
   descriptionInput.value = profileDescription.textContent;
 }
 
-// --- Rellena el formulario y abre el modal "Editar perfil" ---
+// --- Rellena, resetea validación y abre el modal "Editar perfil" ---
 function handleOpenEditModal() {
   fillProfileForm();
+  resetValidation(editProfileForm);
   openModal(editPopup);
 }
 
@@ -82,6 +108,13 @@ function handleProfileFormSubmit(evt) {
   profileTitle.textContent = nameInput.value;
   profileDescription.textContent = descriptionInput.value;
   closeModal(editPopup);
+}
+
+// --- Resetea, limpia y abre el modal "Nuevo lugar" ---
+function handleOpenNewCardModal() {
+  newCardForm.reset();
+  resetValidation(newCardForm);
+  openModal(newCardPopup);
 }
 
 // --- Maneja el envío del formulario "Agregar tarjeta" ---
@@ -142,14 +175,26 @@ editCloseButton.addEventListener('click', () => closeModal(editPopup));
 editProfileForm.addEventListener('submit', handleProfileFormSubmit);
 
 // --- Event listeners: agregar tarjeta ---
-addButton.addEventListener('click', () => openModal(newCardPopup));
+addButton.addEventListener('click', handleOpenNewCardModal);
 newCardCloseButton.addEventListener('click', () => closeModal(newCardPopup));
 newCardForm.addEventListener('submit', handleCardFormSubmit);
 
 // --- Event listeners: imagen ampliada ---
 imagePopupCloseButton.addEventListener('click', () => closeModal(imagePopup));
 
+// --- Event listeners: clic en la superposición (todos los popups) ---
+allPopups.forEach((popup) => {
+  popup.addEventListener('click', handleOverlayClick);
+});
+
 // --- Renderiza las tarjetas iniciales ---
 initialCards.forEach((card) => {
   renderCard(card.name, card.link, cardsList);
+});
+
+// --- Activa la validación de cada formulario de la página ---
+const formList = Array.from(document.querySelectorAll('.popup__form'));
+formList.forEach((formElement) => {
+  formElement.addEventListener('submit', (evt) => evt.preventDefault());
+  setEventListeners(formElement);
 });
