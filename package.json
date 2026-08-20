@@ -1,0 +1,24 @@
+{
+  "name": "web_project_around_es",
+  "version": "1.0.0",
+  "description": "Around The U.S. es una página de perfil interactiva inspirada en un explorador viajero. El proyecto permite visualizar una galería de fotografías de distintos lugares, editar la información del perfil del usuario y agregar nuevas tarjetas de lugares de forma dinámica, todo mediante ventanas emergentes (modales).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pipesilvag99/web_project_around_es.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Pipesilvag99/web_project_around_es/issues"
+  },
+  "homepage": "https://github.com/Pipesilvag99/web_project_around_es#readme",
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}

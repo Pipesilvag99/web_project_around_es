@@ -19,6 +19,8 @@ Around The U.S. es una página de perfil interactiva inspirada en un explorador 
 - HTML5
 - CSS3 (metodología BEM, Flexbox y CSS Grid)
 - JavaScript (manipulación del DOM, plantillas `<template>`, eventos)
+- Typescript
+- POO
 
 ## Autor
 
