@@ -9,3 +9,24 @@
 @import url("../blocks/cards.css");
 @import url("../blocks/card.css");
 @import url("../blocks/popup.css");
+.profile__avatar-wrapper {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.profile__avatar-overlay {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.profile__avatar-wrapper:hover .profile__avatar-overlay {
+  opacity: 1;
+}

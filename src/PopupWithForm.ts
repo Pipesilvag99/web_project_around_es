@@ -1,5 +1,5 @@
 // PopupWithForm.ts
-// Popup específico para formularios (editar perfil, agregar tarjeta).
+// Popup específico para formularios (editar perfil, agregar tarjeta, avatar).
 
 import { Popup } from './Popup.js';
 
@@ -9,6 +9,8 @@ export type HandleFormSubmit = (formValues: FormValues) => void;
 export class PopupWithForm extends Popup {
   private _handleFormSubmit: HandleFormSubmit;
   private _formElement: HTMLFormElement;
+  private _submitButton: HTMLButtonElement;
+  private _defaultButtonText: string;
 
   constructor(popupSelector: string, handleFormSubmit: HandleFormSubmit) {
     super(popupSelector);
@@ -16,6 +18,10 @@ export class PopupWithForm extends Popup {
     this._formElement = this._popupElement.querySelector(
       '.popup__form'
     ) as HTMLFormElement;
+    this._submitButton = this._formElement.querySelector(
+      '.popup__button'
+    ) as HTMLButtonElement;
+    this._defaultButtonText = this._submitButton.textContent ?? 'Guardar';
   }
 
   // --- Recolecta los valores de todos los inputs del formulario ---
@@ -32,7 +38,11 @@ export class PopupWithForm extends Popup {
     return formValues;
   }
 
-  // --- Sobrescribe setEventListeners(): añade además el envío del formulario ---
+  // Cambia el texto del botón a "Guardando..." mientras la petición está en curso
+  setLoading(isLoading: boolean): void {
+    this._submitButton.textContent = isLoading ? 'Guardando...' : this._defaultButtonText;
+  }
+
   setEventListeners(): void {
     super.setEventListeners();
     this._formElement.addEventListener('submit', (evt: SubmitEvent) => {
@@ -41,7 +51,6 @@ export class PopupWithForm extends Popup {
     });
   }
 
-  // --- Sobrescribe close(): además de cerrar, resetea el formulario ---
   close(): void {
     super.close();
     this._formElement.reset();

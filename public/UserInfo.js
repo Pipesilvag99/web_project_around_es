@@ -1,9 +1,17 @@
 // UserInfo.ts
 // Responsable de leer y actualizar la información del usuario en la página.
 export class UserInfo {
-    constructor({ nameSelector, descriptionSelector }) {
+    constructor({ nameSelector, descriptionSelector, avatarSelector }) {
+        this._userId = '';
         this._nameElement = document.querySelector(nameSelector);
         this._descriptionElement = document.querySelector(descriptionSelector);
+        this._avatarElement = document.querySelector(avatarSelector);
+    }
+    getUserId() {
+        return this._userId;
+    }
+    setUserId(id) {
+        this._userId = id;
     }
     // --- Método público: devuelve la info actual del usuario ---
     getUserInfo() {
@@ -17,5 +25,9 @@ export class UserInfo {
     setUserInfo({ name, description }) {
         this._nameElement.textContent = name;
         this._descriptionElement.textContent = description;
+    }
+    // --- Método público: actualiza el avatar en el DOM ---
+    setAvatar(avatar) {
+        this._avatarElement.src = avatar;
     }
 }
