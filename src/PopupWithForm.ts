@@ -4,7 +4,7 @@
 import { Popup } from './Popup.js';
 
 export type FormValues = Record<string, string>;
-export type HandleFormSubmit = (formValues: FormValues) => void;
+export type HandleFormSubmit = (formValues: FormValues) => void | Promise<void>;
 
 export class PopupWithForm extends Popup {
   private _handleFormSubmit: HandleFormSubmit;

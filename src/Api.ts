@@ -25,11 +25,11 @@ export class Api {
     this._headers = headers;
   }
 
-  private _checkResponse<T>(res: Response): Promise<T> {
+  private async _checkResponse<T>(res: Response): Promise<T> {
     if (res.ok) {
-      return res.json();
+      return await res.json();
     }
-    return Promise.reject(new Error(`Error: ${res.status}`));
+    throw new Error(`Error: ${res.status}`);
   }
 
   async getUserInfo(): Promise<UserData> {

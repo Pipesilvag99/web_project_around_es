@@ -16,10 +16,12 @@ export class Api {
         this._headers = headers;
     }
     _checkResponse(res) {
-        if (res.ok) {
-            return res.json();
-        }
-        return Promise.reject(new Error(`Error: ${res.status}`));
+        return __awaiter(this, void 0, void 0, function* () {
+            if (res.ok) {
+                return yield res.json();
+            }
+            throw new Error(`Error: ${res.status}`);
+        });
     }
     getUserInfo() {
         return __awaiter(this, void 0, void 0, function* () {

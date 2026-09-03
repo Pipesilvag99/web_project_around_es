@@ -31,15 +31,15 @@ function handleCardClick(name: string, link: string): void {
 const cardInstances = new Map<string, Card>();
 
 // --- Popup de confirmación para eliminar tarjeta ---
-function handleConfirmDelete(cardId: string): void {
-  api
-    .deleteCard(cardId)
-    .then(() => {
-      cardInstances.get(cardId)?.remove();
-      cardInstances.delete(cardId);
-      confirmDeletePopup.close();
-    })
-    .catch((err) => console.error(err));
+async function handleConfirmDelete(cardId: string): Promise<void> {
+  try {
+    await api.deleteCard(cardId);
+    cardInstances.get(cardId)?.remove();
+    cardInstances.delete(cardId);
+    confirmDeletePopup.close();
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 const confirmDeletePopup = new PopupWithConfirmation(
@@ -53,13 +53,13 @@ function handleDeleteClick(cardId: string): void {
   confirmDeletePopup.open();
 }
 
-function handleLikeClick(cardId: string, isLiked: boolean): void {
-  api
-    .changeLikeCardStatus(cardId, isLiked)
-    .then((updatedCard) => {
-      cardInstances.get(cardId)?.updateLikeStatus(updatedCard.isLiked);
-    })
-    .catch((err) => console.error(err));
+async function handleLikeClick(cardId: string, isLiked: boolean): Promise<void> {
+  try {
+    const updatedCard = await api.changeLikeCardStatus(cardId, isLiked);
+    cardInstances.get(cardId)?.updateLikeStatus(updatedCard.isLiked);
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 function createCard(data: CardData): HTMLElement {
@@ -76,15 +76,9 @@ function createCard(data: CardData): HTMLElement {
 }
 
 // --- Section para el contenedor de tarjetas ---
-const cardSection = new Section<CardData>(
-  {
-    items: [],
-    renderer: (item) => {
-      cardSection.addItem(createCard(item));
-    },
-  },
-  cardsListSelector
-);
+// Se crea en initializeApp, cuando ya tenemos las tarjetas del servidor,
+// y se renderiza usando su propio renderer (Section.renderItems()).
+let cardSection: Section<CardData>;
 
 // --- Formulario y validador: Editar perfil ---
 const editFormElement = document.querySelector('#edit-profile-form') as HTMLFormElement;
@@ -96,16 +90,20 @@ const descriptionInput = editFormElement.querySelector(
 const editProfileValidator = new FormValidator(defaultFormConfig, editFormElement);
 editProfileValidator.enableValidation();
 
-const editProfilePopup = new PopupWithForm('#edit-popup', (formValues) => {
+const editProfilePopup = new PopupWithForm('#edit-popup', async (formValues) => {
   editProfilePopup.setLoading(true);
-  api
-    .updateUserInfo({ name: formValues.name, about: formValues.description })
-    .then((updatedUser) => {
-      userInfo.setUserInfo({ name: updatedUser.name, description: updatedUser.about });
-      editProfilePopup.close();
-    })
-    .catch((err) => console.error(err))
-    .finally(() => editProfilePopup.setLoading(false));
+  try {
+    const updatedUser = await api.updateUserInfo({
+      name: formValues.name,
+      about: formValues.description,
+    });
+    userInfo.setUserInfo({ name: updatedUser.name, description: updatedUser.about });
+    editProfilePopup.close();
+  } catch (err) {
+    console.error(err);
+  } finally {
+    editProfilePopup.setLoading(false);
+  }
 });
 editProfilePopup.setEventListeners();
 
@@ -123,16 +121,20 @@ const newCardFormElement = document.querySelector('#new-card-form') as HTMLFormE
 const newCardValidator = new FormValidator(defaultFormConfig, newCardFormElement);
 newCardValidator.enableValidation();
 
-const newCardPopup = new PopupWithForm('#new-card-popup', (formValues) => {
+const newCardPopup = new PopupWithForm('#new-card-popup', async (formValues) => {
   newCardPopup.setLoading(true);
-  api
-    .addCard({ name: formValues['place-name'], link: formValues.link })
-    .then((newCard) => {
-      cardSection.addItem(createCard(newCard));
-      newCardPopup.close();
-    })
-    .catch((err) => console.error(err))
-    .finally(() => newCardPopup.setLoading(false));
+  try {
+    const newCard = await api.addCard({
+      name: formValues['place-name'],
+      link: formValues.link,
+    });
+    cardSection.addItem(createCard(newCard));
+    newCardPopup.close();
+  } catch (err) {
+    console.error(err);
+  } finally {
+    newCardPopup.setLoading(false);
+  }
 });
 newCardPopup.setEventListeners();
 
@@ -147,16 +149,17 @@ const avatarFormElement = document.querySelector('#avatar-form') as HTMLFormElem
 const avatarValidator = new FormValidator(defaultFormConfig, avatarFormElement);
 avatarValidator.enableValidation();
 
-const avatarPopup = new PopupWithForm('#avatar-popup', (formValues) => {
+const avatarPopup = new PopupWithForm('#avatar-popup', async (formValues) => {
   avatarPopup.setLoading(true);
-  api
-    .updateAvatar({ avatar: formValues.avatar })
-    .then((updatedUser) => {
-      userInfo.setAvatar(updatedUser.avatar);
-      avatarPopup.close();
-    })
-    .catch((err) => console.error(err))
-    .finally(() => avatarPopup.setLoading(false));
+  try {
+    const updatedUser = await api.updateAvatar({ avatar: formValues.avatar });
+    userInfo.setAvatar(updatedUser.avatar);
+    avatarPopup.close();
+  } catch (err) {
+    console.error(err);
+  } finally {
+    avatarPopup.setLoading(false);
+  }
 });
 avatarPopup.setEventListeners();
 
@@ -178,8 +181,17 @@ async function initializeApp(): Promise<void> {
     userInfo.setUserInfo({ name: userData.name, description: userData.about });
     userInfo.setAvatar(userData.avatar);
 
-    // Solo después de tener el id del usuario se renderizan las tarjetas
-    initialCards.forEach((item) => cardSection.addItem(createCard(item)));
+    // Solo después de tener el id del usuario se crea la Section y se renderizan las tarjetas
+    cardSection = new Section<CardData>(
+      {
+        items: initialCards,
+        renderer: (item) => {
+          cardSection.addItem(createCard(item));
+        },
+      },
+      cardsListSelector
+    );
+    cardSection.renderItems();
   } catch (err) {
     console.error('Fallo al cargar datos iniciales:', err);
   }

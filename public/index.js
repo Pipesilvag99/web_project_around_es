@@ -34,15 +34,18 @@ function handleCardClick(name, link) {
 const cardInstances = new Map();
 // --- Popup de confirmación para eliminar tarjeta ---
 function handleConfirmDelete(cardId) {
-    api
-        .deleteCard(cardId)
-        .then(() => {
+    return __awaiter(this, void 0, void 0, function* () {
         var _a;
-        (_a = cardInstances.get(cardId)) === null || _a === void 0 ? void 0 : _a.remove();
-        cardInstances.delete(cardId);
-        confirmDeletePopup.close();
-    })
-        .catch((err) => console.error(err));
+        try {
+            yield api.deleteCard(cardId);
+            (_a = cardInstances.get(cardId)) === null || _a === void 0 ? void 0 : _a.remove();
+            cardInstances.delete(cardId);
+            confirmDeletePopup.close();
+        }
+        catch (err) {
+            console.error(err);
+        }
+    });
 }
 const confirmDeletePopup = new PopupWithConfirmation('#confirm-delete-popup', handleConfirmDelete);
 confirmDeletePopup.setEventListeners();
@@ -51,13 +54,16 @@ function handleDeleteClick(cardId) {
     confirmDeletePopup.open();
 }
 function handleLikeClick(cardId, isLiked) {
-    api
-        .changeLikeCardStatus(cardId, isLiked)
-        .then((updatedCard) => {
+    return __awaiter(this, void 0, void 0, function* () {
         var _a;
-        (_a = cardInstances.get(cardId)) === null || _a === void 0 ? void 0 : _a.updateLikeStatus(updatedCard.isLiked);
-    })
-        .catch((err) => console.error(err));
+        try {
+            const updatedCard = yield api.changeLikeCardStatus(cardId, isLiked);
+            (_a = cardInstances.get(cardId)) === null || _a === void 0 ? void 0 : _a.updateLikeStatus(updatedCard.isLiked);
+        }
+        catch (err) {
+            console.error(err);
+        }
+    });
 }
 function createCard(data) {
     const card = new Card(data, userInfo.getUserId(), cardTemplateSelector, handleCardClick, handleLikeClick, handleDeleteClick);
@@ -65,29 +71,32 @@ function createCard(data) {
     return card.getView();
 }
 // --- Section para el contenedor de tarjetas ---
-const cardSection = new Section({
-    items: [],
-    renderer: (item) => {
-        cardSection.addItem(createCard(item));
-    },
-}, cardsListSelector);
+// Se crea en initializeApp, cuando ya tenemos las tarjetas del servidor,
+// y se renderiza usando su propio renderer (Section.renderItems()).
+let cardSection;
 // --- Formulario y validador: Editar perfil ---
 const editFormElement = document.querySelector('#edit-profile-form');
 const nameInput = editFormElement.querySelector('.popup__input_type_name');
 const descriptionInput = editFormElement.querySelector('.popup__input_type_description');
 const editProfileValidator = new FormValidator(defaultFormConfig, editFormElement);
 editProfileValidator.enableValidation();
-const editProfilePopup = new PopupWithForm('#edit-popup', (formValues) => {
+const editProfilePopup = new PopupWithForm('#edit-popup', (formValues) => __awaiter(void 0, void 0, void 0, function* () {
     editProfilePopup.setLoading(true);
-    api
-        .updateUserInfo({ name: formValues.name, about: formValues.description })
-        .then((updatedUser) => {
+    try {
+        const updatedUser = yield api.updateUserInfo({
+            name: formValues.name,
+            about: formValues.description,
+        });
         userInfo.setUserInfo({ name: updatedUser.name, description: updatedUser.about });
         editProfilePopup.close();
-    })
-        .catch((err) => console.error(err))
-        .finally(() => editProfilePopup.setLoading(false));
-});
+    }
+    catch (err) {
+        console.error(err);
+    }
+    finally {
+        editProfilePopup.setLoading(false);
+    }
+}));
 editProfilePopup.setEventListeners();
 const editButton = document.querySelector('.profile__edit-button');
 editButton.addEventListener('click', () => {
@@ -101,17 +110,23 @@ editButton.addEventListener('click', () => {
 const newCardFormElement = document.querySelector('#new-card-form');
 const newCardValidator = new FormValidator(defaultFormConfig, newCardFormElement);
 newCardValidator.enableValidation();
-const newCardPopup = new PopupWithForm('#new-card-popup', (formValues) => {
+const newCardPopup = new PopupWithForm('#new-card-popup', (formValues) => __awaiter(void 0, void 0, void 0, function* () {
     newCardPopup.setLoading(true);
-    api
-        .addCard({ name: formValues['place-name'], link: formValues.link })
-        .then((newCard) => {
+    try {
+        const newCard = yield api.addCard({
+            name: formValues['place-name'],
+            link: formValues.link,
+        });
         cardSection.addItem(createCard(newCard));
         newCardPopup.close();
-    })
-        .catch((err) => console.error(err))
-        .finally(() => newCardPopup.setLoading(false));
-});
+    }
+    catch (err) {
+        console.error(err);
+    }
+    finally {
+        newCardPopup.setLoading(false);
+    }
+}));
 newCardPopup.setEventListeners();
 const addButton = document.querySelector('.profile__add-button');
 addButton.addEventListener('click', () => {
@@ -122,17 +137,20 @@ addButton.addEventListener('click', () => {
 const avatarFormElement = document.querySelector('#avatar-form');
 const avatarValidator = new FormValidator(defaultFormConfig, avatarFormElement);
 avatarValidator.enableValidation();
-const avatarPopup = new PopupWithForm('#avatar-popup', (formValues) => {
+const avatarPopup = new PopupWithForm('#avatar-popup', (formValues) => __awaiter(void 0, void 0, void 0, function* () {
     avatarPopup.setLoading(true);
-    api
-        .updateAvatar({ avatar: formValues.avatar })
-        .then((updatedUser) => {
+    try {
+        const updatedUser = yield api.updateAvatar({ avatar: formValues.avatar });
         userInfo.setAvatar(updatedUser.avatar);
         avatarPopup.close();
-    })
-        .catch((err) => console.error(err))
-        .finally(() => avatarPopup.setLoading(false));
-});
+    }
+    catch (err) {
+        console.error(err);
+    }
+    finally {
+        avatarPopup.setLoading(false);
+    }
+}));
 avatarPopup.setEventListeners();
 const avatarEditButton = document.querySelector('.profile__avatar-overlay');
 avatarEditButton.addEventListener('click', () => {
@@ -150,8 +168,14 @@ function initializeApp() {
             userInfo.setUserId(userData._id);
             userInfo.setUserInfo({ name: userData.name, description: userData.about });
             userInfo.setAvatar(userData.avatar);
-            // Solo después de tener el id del usuario se renderizan las tarjetas
-            initialCards.forEach((item) => cardSection.addItem(createCard(item)));
+            // Solo después de tener el id del usuario se crea la Section y se renderizan las tarjetas
+            cardSection = new Section({
+                items: initialCards,
+                renderer: (item) => {
+                    cardSection.addItem(createCard(item));
+                },
+            }, cardsListSelector);
+            cardSection.renderItems();
         }
         catch (err) {
             console.error('Fallo al cargar datos iniciales:', err);
